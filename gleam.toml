@@ -1,0 +1,15 @@
+name = "pocket_watch"
+version = "1.0.0"
+
+description = "Easily time execution of a block or function!"
+licences = ["Apache-2.0"]
+repository = { type = "github", user = "", repo = "" }
+links = [{ title = "Website", href = "" }]
+
+[dependencies]
+gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+humanise = ">= 1.0.2 and < 2.0.0"
+birl = ">= 1.7.1 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
