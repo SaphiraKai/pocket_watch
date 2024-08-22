@@ -3,8 +3,8 @@ version = "1.0.0"
 
 description = "Easily time execution of a block or function!"
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "", repo = "" }
-links = [{ title = "Website", href = "" }]
+repository = { type = "github", user = "SaphiraKai", repo = "pocket_watch" }
+links = []
 
 [dependencies]
 gleam_stdlib = ">= 0.34.0 and < 2.0.0"
