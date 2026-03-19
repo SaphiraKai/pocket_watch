@@ -40,20 +40,20 @@ pub type Summary(value) {
 /// Returns a `String` containing all aggregate information from a `Summary`.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// "min: 1.0ms, max: 2.0ms, median: 1.5ms, mean: 1.5ms, runs: 10_000, warmup: 800.0ms, total (ex. warmup): 15.0s"
 /// ```
-pub fn all(summary: Summary(_)) -> String {
-  timings(summary) <> ", " <> overall(summary)
+pub fn show_all(summary: Summary(_)) -> String {
+  show_timings(summary) <> ", " <> show_overall(summary)
 }
 
 /// Returns a `String` containing the aggregate timing information from a `Summary`.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// "min: 1.0ms, max: 2.0ms, median: 1.5ms, mean: 1.5ms"
 /// ```
-pub fn timings(summary: Summary(_)) -> String {
+pub fn show_timings(summary: Summary(_)) -> String {
   "min: "
   <> humanise.duration(summary.min)
   <> ", max: "
@@ -68,10 +68,10 @@ pub fn timings(summary: Summary(_)) -> String {
 /// Returns a `String` containing warmup and post-warmup rates calculated from a `Summary`.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// "warmup: 10.0/s, post-warmup: 30.0/s"
 /// ```
-pub fn rates(summary: Summary(_)) -> String {
+pub fn show_rates(summary: Summary(_)) -> String {
   let warmup_runs = int.to_float(summary.warmup_runs)
   let warmup_time = duration.to_seconds(summary.warmup)
   let post_warmup_runs = int.to_float(summary.runs)
@@ -89,10 +89,10 @@ pub fn rates(summary: Summary(_)) -> String {
 /// Returns a `String` containing the overall information from a `Summary`.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// "runs: 1000, warmup: 200.0ms, total (ex. warmup): 2.0s"
 /// ```
-pub fn overall(summary: Summary(_)) -> String {
+pub fn show_overall(summary: Summary(_)) -> String {
   "warmup: "
   <> int.to_string(summary.warmup_runs)
   <> "/"
@@ -120,14 +120,14 @@ pub fn label(
 /// - Collected return values from each run
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// let summary = {
 ///   use <- summary.collect(runs: 100, warmup: 0)
 /// 
 ///   string.repeat("meow ", 1_000_000)
 /// }
 /// 
-/// summary.timings(summary) |> io.println_error
+/// summary.show_timings(summary) |> io.println_error
 /// // min: 1.49ms, max: 4.13ms, median: 2.03ms, mean: 2.11ms
 /// ```
 pub fn collect(
@@ -199,9 +199,9 @@ pub fn collect(
 /// This function returns the first value it collects.
 /// 
 /// ## Examples:
-/// ```
+/// ```gleam
 /// {
-///   use <- summary.callback(runs: 100, warmup: 10, with: summary.overall)
+///   use <- summary.callback(runs: 100, warmup: 10, with: summary.show_overall)
 /// 
 ///   string.repeat("meow ", 1_000_000)
 /// }
@@ -229,7 +229,7 @@ pub fn callback(
 /// This function returns the first value it collects.
 /// 
 /// ## Examples:
-/// ```
+/// ```gleam
 /// {
 ///   use <- summary.simple(label: "test", runs: 100, warmup: 0)
 /// 
@@ -248,10 +248,10 @@ pub fn simple(
     let header = "pocket_watch [" <> label <> "]: "
 
     header
-    <> timings(summary)
+    <> show_timings(summary)
     <> "\n"
     <> string.repeat(" ", string.length(header))
-    <> overall(summary)
+    <> show_overall(summary)
   }
 
   callback(runs: n, warmup:, time: body, with:)
