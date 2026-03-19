@@ -8,7 +8,7 @@ import pocket_watch/summary
 /// Log time taken using a default callback with `io.println_error`.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// {
 ///   use <- pocket_watch.simple("test")
 ///
@@ -26,7 +26,7 @@ pub fn simple(label: String, body: fn() -> a) -> a {
 /// Log time taken using a provided callback.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// let print_time = fn(label, elapsed) { io.println_error(label <> " took " <> elapsed) }
 ///
 /// {
@@ -44,7 +44,7 @@ pub fn callback(with callback: fn(String) -> _, time body: fn() -> a) -> a {
 /// Log time taken using a provided callback that takes `Float` nanoseconds as argument.
 ///
 /// ## Examples:
-/// ```
+/// ```gleam
 /// let print_time = fn(label, elapsed) {
 ///   io.println_error(label <> " took " <> float.to_string(elapsed /. 1_000_000.0) <> "ms")
 /// }
