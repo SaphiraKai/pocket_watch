@@ -3,7 +3,7 @@ version = "2.0.0"
 
 description = "Easily time execution of a block or function!"
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "SaphiraKai", repo = "https://github.com/SaphiraKai/pocket_watch" }
+repository = { type = "github", user = "SaphiraKai", repo = "pocket_watch" }
 links = []
 
 internal_modules = [
