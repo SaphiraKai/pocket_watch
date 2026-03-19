@@ -19,9 +19,9 @@ collected without interrupting your normal control flow!
 > application throughout its lifecycle, along with memory usage and
 > cache-miss rates?
 
-Whoa there buckaroo-- this is a pocket watch, **not a profiler**!
+Whoa there buckaroo&ndash; this is a pocket watch, **not a profiler**!
 
-If you need more control, more precision, or a deeper integration into your runtime, I suggest looking into Erlang-- or JavaScript-specific profiling tools.
+If you need more control, more precision, or a deeper integration into your runtime, I suggest looking into Erlang&ndash; or JavaScript-specific profiling tools.
 
 ```sh
 gleam add pocket_watch@2
