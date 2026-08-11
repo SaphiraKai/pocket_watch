@@ -5,3 +5,7 @@ export function elapsed(fun) {
 
   return [ret, (stop - start) * 1000000];
 }
+
+export function monotonic_now() {
+  return globalThis.performance.now() * 1000000;
+}
