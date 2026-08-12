@@ -10,10 +10,17 @@ you can quickly measure their execution time using this library!
 
 > Well it's fast *most of the time*, but sometimes it gets really slow.
 
-Try one of the [`summary`](./pocket_watch/summary.html) functions, which collect execution times over
-multiple runs and give you aggregate stats. You can even run a function
-multiple times each time it's called, and simply return the first value
-collected without interrupting your normal control flow!
+Try one of the [`summary`](./pocket_watch/summary.html) functions, which
+collect execution times over multiple runs and give you aggregate stats.
+You can even run a function multiple times each time it's called, and simply
+return the first value collected without interrupting your normal control flow!
+
+> I figured out which of my big functions is the problem, but there's a lot of
+> moving parts inside and I'm not sure which step is slowing me down the most.
+
+Sounds like a job for the [`step`](./pocket_watch/step.html) module! Divide
+your big function into multiple steps, and get realtime feedback on how long
+each step is taking. Or, cut right to the chase and just find the slowest step.
 
 > Cool. Can I trace the execution time of *every* function called in my
 > application throughout its lifecycle, along with memory usage and
@@ -21,7 +28,8 @@ collected without interrupting your normal control flow!
 
 Whoa there buckaroo&ndash; this is a pocket watch, **not a profiler**!
 
-If you need more control, more precision, or a deeper integration into your runtime, I suggest looking into Erlang&ndash; or JavaScript-specific profiling tools.
+If you need more control, more precision, or a deeper integration into your
+runtime, I suggest looking into Erlang or JavaScript-specific profiling tools.
 
 ```sh
 gleam add pocket_watch@2
@@ -29,7 +37,6 @@ gleam add pocket_watch@2
 
 ---
 ## Examples
-
 ### Simple:
 ```gleam
 import pocket_watch
@@ -79,60 +86,11 @@ pub fn main() {
 // logged function: took 6.9m
 ```
 
-### Run a function multiple times and aggregate the results:
-```gleam
-import pocket_watch
-
-pub fn main() {
-  use <- pocket_watch.summary_simple("simple summary", runs: 100, warmup: 0)
-
-  function_thats_usually_fast_but_occasionally_really_slow()
-}
-// pocket_watch [simple summary]: min: 210.0ns, max: 100.02ms, median: 6.0ms, mean: 12.77ms
-//                                warmup: 0/0.0ns, total post-warmup: 100/1.28s
-```
-
-### Aggregate with a custom callback:
-```gleam
-import pocket_watch/summary
-
-pub fn main() {
-  use <- summary.callback(
-    runs: 10_000,
-    warmup: 100,
-    with: summary.label("sprint", summary.show_rates),
-  )
-
-  function_that_gets_faster_over_time()
-}
-// pocket_watch [sprint]: warmup: 6.6/s, post-warmup: 13.63/s
-```
-
-### Collect a summary to work with directly:
-```gleam
-import pocket_watch/summary.{Summary}
-
-pub fn main() { 
-  let Summary(
-    values:, // List of return values from each run
-    times:, // List of times from each run
-    runs:, // Number of runs
-    warmup_runs:, // Number of warmup runs
-    warmup:, // Warmup time elapsed
-    total:, // Total (post-warmup) time elapsed
-    min:, // Fastest run time
-    max:, // Slowest run time
-    median:, // Median run time
-    mean:, // Mean/average run time
-  ) = summary.collect(runs: 100, warmup: 0, time: yet_another_function)
-}
-```
 
 Further documentation can be found at <https://hexdocs.pm/pocket_watch>.
 
 ## Development
 
 ```sh
-gleam run   # Run the project
 gleam test  # Run the tests
 ```

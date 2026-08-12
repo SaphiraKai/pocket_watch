@@ -1,11 +1,169 @@
+//// This module is intended for cases where you have multiple steps in a
+//// time-consuming operation, and you'd like to figure out which step(s) are your bottleneck.
+////
+//// ## Examples:
+//// ### Log each step's timing as it runs:
+//// ```gleam
+//// let step.Return(wabble, _) =
+////   step.collect({
+////     use <- step.simple("loading wibble") // using `simple` callback for logging
+////     let wibble = load_wibble()
+////     // pocket_watch [loading wibble]: took 80ms
+////
+////     use <- step.next("parsing wibble")
+////     let wobble = wobble.parse_wibble(wibble)
+////     // pocket_watch [parsing wibble]: took 150ms
+////
+////     use <- step.next("wobble -> wabble conversion")
+////     let wabble = wobble.to_wabble(wobble)
+////     // pocket_watch [wobble -> wabble conversion]: took 500ms
+////
+////     step.finish(wabble)
+////   })
+////
+//// // do something with the returned wabble
+//// ```
+////
+//// ### Find the slowest step as a percentage of the total time, without logging:
+//// ```gleam
+//// let step.Return(_wabble, steps:) =
+////   step.collect({
+////     use <- step.next("loading wibble") // no callback has been provided, so no logging will be done
+////     let wibble = load_wibble()
+////
+////     use <- step.next("parsing wibble")
+////     let wobble = wobble.parse_wibble(wibble)
+////
+////     use <- step.next("wobble -> wabble conversion")
+////     let wabble = wobble.to_wabble(wobble)
+////
+////     step.finish(wabble)
+////   })
+////
+//// steps |> list.sort(step.compare) |> step.percent(0) |> list.last |> echo
+//// // Ok(Step("wobble -> wabble conversion", "68%"))
+//// ```
+////
+//// ### Find the total time of multiple steps:
+//// ```gleam
+//// let step.Return(_wabble, steps:) =
+////   step.collect({
+////     use <- step.next("loading wibble")
+////     let wibble = load_wibble()
+//// 
+////     use <- step.next("parsing wibble")
+////     let wobble = wobble.parse_wibble(wibble)
+////
+////     use <- step.next("wobble -> wabble conversion")
+////     let wabble = wobble.to_wabble(wobble)
+////
+////     step.finish(wabble)
+////   })
+//// 
+//// steps |> step.total(", ") |> step.humanise |> echo
+//// // Step("[loading wibble], [parsing wibble], [wobble -> wabble conversion]", "730ms")
+//// ```
+////
+//// ### Specify multiple callbacks:
+//// ```gleam
+//// let print_nanoseconds = fn(label, elapsed) {
+////   io.println_error(
+////     label <> " took " <> float.to_string(elapsed) <> " nanoseconds",
+////   )
+//// }
+//// 
+//// let print_if_slow = fn(label, elapsed) {
+////   case elapsed >. 250.0e6 {
+////     False -> Nil
+////     True ->
+////       io.println_error(
+////         "warning: "
+////         <> label
+////         <> " took more than 250ms ("
+////         <> humanise.nanoseconds_float(elapsed)
+////         <> ")",
+////       )
+////   }
+//// }
+////
+//// step.collect({
+////   use <- step.simple("loading wibble")
+////   let wibble = load_wibble()
+////   // pocket_watch [loading wibble]: took 80ms
+//// 
+////   use <- step.callback_ns("parsing wibble", print_nanoseconds)
+////   let wobble = parse_wibble(wibble)
+////   // parsing wibble took 150000000.0 nanoseconds
+////
+////   use <- step.callback_ns("wobble -> wabble conversion", print_if_slow)
+////   let wabble = wobble_to_wabble(wobble)
+////   // warning: wobble -> wabble conversion took more than 250ms (500ms)
+////
+////   step.finish(wabble)
+//// })
+//// ```
+
+import gleam/float
+import gleam/int
 import gleam/io
 import gleam/list
+import gleam/order.{type Order}
+import gleam/string
 
 import humanise
 
 /// A single step in a sequence of timed steps.
 pub type Step(time) {
   Step(label: String, elapsed: time)
+}
+
+/// Compare step times.
+pub fn compare(left: Step(Float), right: Step(Float)) -> Order {
+  float.compare(left.elapsed, right.elapsed)
+}
+
+/// Convert a step's elapsed time from nanoseconds to a human-readable string.
+pub fn humanise(step: Step(Float)) -> Step(String) {
+  Step(..step, elapsed: humanise.nanoseconds_float(step.elapsed))
+}
+
+/// Find the total time elapsed over multiple steps.
+///
+/// Labels are combined using the separator; using `", "`:
+/// ```gleam
+/// ["first", "second", "third"]
+/// ```
+/// Becomes:
+/// ```gleam
+/// "[first], [second], [third]"
+/// ```
+pub fn total(steps: List(Step(Float)), separator: String) -> Step(Float) {
+  let #(labels, times) =
+    list.map(steps, fn(s) { #(s.label, s.elapsed) }) |> list.unzip
+
+  let label =
+    list.map(labels, fn(l) { "[" <> l <> "]" }) |> string.join(separator)
+  let elapsed = float.sum(times)
+
+  Step(label:, elapsed:)
+}
+
+/// Convert step times to percentages of the total time.
+///
+/// `precision` is clamped to `0` or greater.
+pub fn percent(steps: List(Step(Float)), precision: Int) -> List(Step(String)) {
+  let precision = int.max(precision, 0)
+  let Step(_, total) = total(steps, "")
+
+  let to_percent = case precision {
+    0 -> fn(f) { float.round(f /. total *. 100.0) |> int.to_string <> "%" }
+    _ -> fn(f) {
+      float.to_precision(f /. total *. 100.0, precision) |> float.to_string
+      <> "%"
+    }
+  }
+
+  list.map(steps, fn(s) { Step(..s, elapsed: to_percent(s.elapsed)) })
 }
 
 type State {
@@ -29,7 +187,7 @@ pub type Return(return) {
   Return(return: return, steps: List(Step(Float)))
 }
 
-/// Tracks the previous steps, the current step's label, elapsed time, and callback until resolved to a [`Return`](./step.html#Return) by [`collect`](./step.html#collect).
+/// Tracks the previous steps, and the current step's label, elapsed time, and callback, until resolved to a [`Return`](./step.html#Return) by [`collect`](./step.html#collect).
 pub opaque type StepTracker(return) {
   StepTracker(resolve: fn(State) -> Return(return))
 }

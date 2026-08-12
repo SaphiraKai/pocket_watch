@@ -1,3 +1,44 @@
+//// This module allows you to run a function many times (with an optional warmup)
+//// and collect aggregate statistics about the run times.
+////
+//// ## Examples:
+//// ### Run a function multiple times and aggregate the results:
+//// ```gleam
+//// use <- pocket_watch.summary_simple("simple summary", runs: 100, warmup: 0)
+//// 
+//// function_thats_usually_fast_but_occasionally_really_slow()
+//// // pocket_watch [simple summary]: min: 210.0ns, max: 100.02ms, median: 6.0ms, mean: 12.77ms
+//// //                                warmup: 0/0.0ns, total post-warmup: 100/1.28s
+//// ```
+//// 
+//// ### Aggregate with a custom callback:
+//// ```gleam
+//// use <- summary.callback(
+////   runs: 10_000,
+////   warmup: 100,
+////   with: summary.label("sprint", summary.show_rates),
+//// )
+//// 
+//// function_that_gets_faster_over_time()
+//// // pocket_watch [sprint]: warmup: 6.6/s, post-warmup: 13.63/s
+//// ```
+//// 
+//// ### Collect a summary to work with directly:
+//// ```gleam
+//// let Summary(
+////   values:, // List of return values from each run
+////   times:, // List of times from each run
+////   runs:, // Number of runs
+////   warmup_runs:, // Number of warmup runs
+////   warmup:, // Warmup time elapsed
+////   total:, // Total (post-warmup) time elapsed
+////   min:, // Fastest run time
+////   max:, // Slowest run time
+////   median:, // Median run time
+////   mean:, // Mean/average run time
+//// ) = summary.collect(runs: 100, warmup: 0, time: yet_another_function)
+//// ```
+
 import gleam/bool
 import gleam/float
 import gleam/int
