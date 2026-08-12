@@ -1,7 +1,7 @@
 name = "pocket_watch"
 version = "2.1.0"
 
-description = "Easily time execution of a block or function!"
+description = "Lightweight rapid benchmarking library"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "SaphiraKai", repo = "pocket_watch" }
 links = []
